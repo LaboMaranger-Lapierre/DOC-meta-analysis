@@ -2,7 +2,9 @@
 title: "DOC meta-analysis"
 author: "Richard LaBrie"
 date: "7 novembre 2018"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r echo = FALSE}
@@ -392,7 +394,7 @@ dev.off()
 
 ```
 
-```{r}
+```{r echo = F}
 #Values for table 1, average LDOC and BDOC, range of LDOC and BDOC
 #Find how many incubations were made per system
 
@@ -673,7 +675,6 @@ clip(x1 = 30,
 abline(LDOC.lm.unprod.log, col="#FFD700", lwd=2)
 abline(LDOC.lm.prod.log, col="#33a02c", lwd=2)  
 
-
   
 #Plots for BDOC
 plot(BDOC.temp ~ DOC.temp,
@@ -846,7 +847,7 @@ dev.off()
 
 ```
 
-```{r}
+```{r echo = F}
 #Code for the multi-G model
 #Mean LDOC for lakes
 LDOC.lake = mean(na.omit(labile.frac[Enriched_2 == 0 & Environment == "Lake"])) 
