@@ -40,10 +40,10 @@ Study	Authors	Lon	Lat	Region	Environment	Environment_2	Environment_4	Temp_insitu
 8	Fukushima	132.52	34.22	North_Pacific	Coastal	Estuary	NA	NA	20	Full	0.3	Nothing	Nothing	Hiroshima_bay	Hiroshima_bay	0	23	98.0416666666667	NA	83.3333333333333	NA	14.7083333333334	NA	100	NA	NA
 8	Fukushima	132.34	34.16	North_Pacific	Coastal	Estuary	NA	NA	20	Full	0.3	Nothing	Nothing	Hiroshima_bay	Hiroshima_bay	0	23	93.8416666666667	NA	74.23	NA	19.6116666666667	NA	100	NA	NA
 9	Gan	122.25	29.25	North_Pacific	Coastal	Coastal	NA	18.3	20	0.7	0.665	1.2	0.035	Coastal_current	Coastal_current	0	24	81	NA	85	NA	-4	NA	14	-4	14
-9	Gan	120.5	25.21	North_Pacific	Coastal	Coastal	NA	22.1	20	0.7	0.665	1.2	0.035	Taiwan_current	Taiwan_current	0	24	88	NA	62	NA	26	NA	14	26	14
+9	Gan	120.5	25.21	North_Pacific	Coastal	Coastal	NA	22.1	20	0.7	0.665	1.2	0.035	Taiwan_current	Taiwan_current	1	24	88	NA	62	NA	26	NA	14	26	14
 9	Gan	122.91	25.48	North_Pacific	Coastal	Coastal	NA	19.7	20	0.7	0.665	1.2	0.035	Kuroshio_current	Kuroshio_current	0	24	67	NA	60	NA	7	NA	14	7	14
-9	Gan	120.81	27.26	North_Pacific	Coastal	Coastal	NA	20	20	0.7	0.665	1.2	0.035	Algal_bloom_1	Algal_bloom_1	0	24	87	NA	73	NA	14	NA	14	14	14
-9	Gan	121.21	27.45	North_Pacific	Coastal	Coastal	NA	20.2	20	0.7	0.665	1.2	0.035	Algal_bloom_2	Algal_bloom_2	0	24	107	NA	87	NA	20	NA	14	20	14
+9	Gan	120.81	27.26	North_Pacific	Coastal	Coastal	NA	20	20	0.7	0.665	1.2	0.035	Algal_bloom_1	Algal_bloom_1	1	24	87	NA	73	NA	14	NA	14	14	14
+9	Gan	121.21	27.45	North_Pacific	Coastal	Coastal	NA	20.2	20	0.7	0.665	1.2	0.035	Algal_bloom_2	Algal_bloom_2	1	24	107	NA	87	NA	20	NA	14	20	14
 9	Gan	122.47	31.74	North_Pacific	Coastal	Coastal	NA	20.7	20	0.7	0.665	1.2	0.035	Changjiang_plume	Changjiang_plume	0	24	89	NA	80	NA	9	NA	14	9	14
 9	Gan	122.43	31.13	North_Pacific	Coastal	Coastal	NA	19.5	20	0.7	0.665	1.2	0.035	Changjiang_plume	Changjiang_plume	0	24	92	NA	85	NA	7	NA	14	7	14
 10	Hasegawa	145.133333333333	42.25	North_Pacific	Open	Open	NA	2.2	5	0.7	Unknown	Nothing	Nothing	avr-03	Subarctic_Pacific_Ocean	0	21	53.673	NA	52.4529	NA	1.2201	NA	38	NA	NA

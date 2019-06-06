@@ -12,12 +12,11 @@ library("klaR")
 library("dplyr")
 library("moments")
 library("colorspace")
-library("segmented")
 library("plotrix")
 library("lattice")
 library("minpack.lm")
 library("extrafont")
-font_import()
+#font_import()
 
 log_tick_marks <- function(min,max)
 {
@@ -56,17 +55,25 @@ Ocean.time.break = End_time[End_time > 9 & End_time < 300 & PercentSL > 0 & Enri
 pch.ocean = pch[End_time > 9 & PercentSL > 0 & Enriched_2==0 & Environment != "Lake" & Environment != "river"& Environment != "wetland"]
 
 #Piecewise regression (find the inflection point)
-#Linear model
-lin.mod = lm(Ocean.consumed.break ~ Ocean.time.break)
-#Piecewise model
-segmented.mod <- segmented(lin.mod, seg.Z = ~Ocean.time.break, psi=c(40))
-plot.segmented(segmented.mod, add=F, conf.level=.95, rug=F)
-#Compare both regressions
-AIC(segmented.mod)
-AIC(lin.mod)
-#Get regressions coefficients
-summary(segmented.mod)
+y.ocean = Ocean.consumed.break
+x.ocean = Ocean.time.break
+breaks <- x.ocean[which(x.ocean >= 20 & x.ocean <= 40)]
+mse <- numeric(length(breaks))
+for(i in 1:length(breaks)){
+ piecewise1 <- lm(y.ocean ~ x.ocean*(x.ocean < breaks[i]) + x.ocean*(x.ocean>=breaks[i]))
+ mse[i] <- summary(piecewise1)[6]
+}
+mse <- as.numeric(mse)
+breaks[which(mse==min(mse))]
 
+piecewise.ocean <- lm(y.ocean ~ x.ocean*(x.ocean <= 31) + x.ocean*(x.ocean > 31))
+summary(piecewise.ocean)
+summary(lm(y.ocean[x.ocean <= 31] ~ x.ocean[x.ocean <= 31]))
+lin.mod = lm(y.ocean ~ x.ocean)
+AIC(piecewise.ocean) #1201.99
+AIC(lin.mod) #1206.77
+BIC(piecewise.ocean) #1217.87
+BIC(lin.mod) #1216.3
 
 #Create object for lakes
 BDOC.lake = PercentSL[End_time > 9 & PercentSL > 0 & Enriched_2==0 & Environment == "Lake"]
@@ -85,10 +92,15 @@ for(i in 1:length(breaks)){
 }
 mse <- as.numeric(mse)
 breaks[which(mse==min(mse))]
-piecewise2 <- lm(y.lake ~ x.lake *(x.lake < 1.556) + x.lake*(x.lake > 1.556))
-#Get the regressions' coefficients
-summary(lm(y.lake[x.lake < 1.556] ~ x.lake[x.lake < 1.556])) # p = 0.72
-summary(lm(y.lake[x.lake > 1.556] ~ x.lake[x.lake > 1.556])) # p = 0.036
+piecewise2 <- lm(y.lake ~ x.lake *(x.lake <= 1.556303) + x.lake*(x.lake > 1.556303))
+summary(piecewise2)
+summary(lm(y.lake[x.lake <= 1.556303] ~ x.lake[x.lake < 1.556303]))
+
+#Compare both regressions with AIC and BIC
+AIC(piecewise2) #1417.4
+AIC(lm(y.lake ~ x.lake)) #1436.7
+BIC(piecewise2) #1435.0
+BIC(lm(y.lake ~ x.lake)) #1447.3
 
 #Export third graph in pdf format
 pdf("./Figure 3.pdf", family = "ArialMT", height = 8, width = 5)
@@ -151,8 +163,8 @@ plot(BDOC.lake ~ BDOC.lake.time.log,
      pch = pch.lake,
      cex = 1.3)
 
-curve(5.55 + 0 * x, add= T, from=.95, to=1.556, lwd = 3)
-curve(-1.47 + 11.212 * x, add= T, from=1.556,to=2.78, lwd = 3)
+curve(5.415 + 0 * x, add= T, from=.95, to=1.556, lwd = 3)
+curve(5.415 + 8.278 * x, add= T, from=1.556,to=2.78, lwd = 3)
 legend("topleft",
        legend = paste("Lakes"),
        col="black",
@@ -244,7 +256,7 @@ box.name2 = box.name2[order(box.name2)] #Reorder BDOC names
 
 #Test what is significantly different in terms of LDOC
 box.name = as.factor(box.name)
-summary(aov.boxplot.ldoc <- aov(box.ldoc ~ box.name)) #ANOVA, F8,501 = 10.86, p < 0.05
+summary(aov.boxplot.ldoc <- aov(box.ldoc ~ box.name)) #ANOVA, F8,501 = 13.56, p < 0.05
 posthoc.ldoc <- TukeyHSD(aov.boxplot.ldoc, "box.name", conf.level=0.95)
 posthoc.ldoc
 posthoc.ldoc.p <- posthoc.ldoc$box.name[,4]
@@ -269,7 +281,7 @@ plot(posthoc.bdoc, las = 1)
 box.bdoc.2 = box.bdoc[box.name2!="10"]
 box.name.3 = box.name2[box.name2!="10"]
 box.name.3 = as.factor(box.name.3)
-summary(aov.boxplot.bdoc.2 <- aov(box.bdoc.2 ~ box.name.3)) #ANOVA, F(5, 141) = 9.924, p < 0.05
+summary(aov.boxplot.bdoc.2 <- aov(box.bdoc.2 ~ box.name.3)) #ANOVA, F(5, 141) = 9.16, p < 0.05
 posthoc.bdoc.2 <- TukeyHSD(aov.boxplot.bdoc.2, "box.name.3", conf.level=0.95)
 posthoc.bdoc.2.p <- posthoc.bdoc.2$box.name.3[,4]
 p.adjust(posthoc.bdoc.2.p, "holm", 15)
@@ -282,9 +294,9 @@ mean(na.omit(box.ldoc[box.name == "4"])) #Lakes 5.17 ± 0.28
 mean(na.omit(box.ldoc[box.name == "5"])) #Lagoons 5.77 ± 2.38
 mean(na.omit(box.ldoc[box.name == "6"])) #Inland seas 6.66 ± 0.95
 mean(na.omit(box.ldoc[box.name == "7"])) #Estuaries 6.16 ± 0.53
-mean(na.omit(box.ldoc[box.name == "8"])) #Coasts 6.56 ± 0.92
+mean(na.omit(box.ldoc[box.name == "8"])) #Coasts 5.49 ± 0.71
 mean(na.omit(box.ldoc[box.name == "9"])) #Open ocean 5.19 ± 0.99
-mean(na.omit(box.ldoc[box.name == "10"])) #Productive systems 15.7 ± 1.89%
+mean(na.omit(box.ldoc[box.name == "10"])) #Productive systems 16.3 ± 1.76%
 
 #Mean values ± se for BDOC
 mean(na.omit(box.bdoc[box.name2 == "2"])) #Lakes 21.16 ± 1.88
@@ -299,11 +311,12 @@ SLDOCLake = c(mean(na.omit(box.bdoc[box.name2 == "2"]))-mean(na.omit(box.ldoc[bo
 SLDOCLagoon = c(mean(na.omit(box.bdoc[box.name2 == "3"]))-mean(na.omit(box.ldoc[box.name == "5"]))) # 13.69%
 SLDOCSea = c(mean(na.omit(box.bdoc[box.name2 == "4"]))-mean(na.omit(box.ldoc[box.name == "6"]))) #10.14%
 SLDOCEstuary = c(mean(na.omit(box.bdoc[box.name2 == "5"]))-mean(na.omit(box.ldoc[box.name == "7"]))) #7.22%
-SLDOCCoast = c(mean(na.omit(box.bdoc[box.name2 == "6"]))-mean(na.omit(box.ldoc[box.name == "8"]))) #3.97%
+SLDOCCoast = c(mean(na.omit(box.bdoc[box.name2 == "6"]))-mean(na.omit(box.ldoc[box.name == "8"]))) #5.03%
 SLDOCOO = c(mean(na.omit(box.bdoc[box.name2 == "7"]))-mean(na.omit(box.ldoc[box.name == "9"]))) #0%
+SLDOCProd = mean(na.omit(box.bdoc[box.name2 == "10"])) - mean(na.omit(box.ldoc[box.name == "10"])) #10.25
 
 #Create a matrix with the above values
-conceptual <- data.frame(LDOC = c(5.17,5.77,6.66,6.16,6.56,5.19,NA),
+conceptual <- data.frame(LDOC = c(5.17,5.77,6.66,6.16,5.49,5.19,NA),
                          BDOC = c(21.16,19.46,16.79,13.39,10.52,5.19,NA),
                          Environment = c(1,2,3,4,5,6,7))
 
@@ -318,7 +331,7 @@ pdf("./Figure 4 - BW.pdf", family = "ArialMT", width = 7, height = 15)
 par(mfrow = c(3,1))
 par(mgp=c(2.3,1,0))
 par(mar=c(3.3,4,0.8,2))
-  
+
 #Box plots creation
 boxplot(box.ldoc ~ box.name, 
         ylim = c(-4,60),
@@ -330,7 +343,7 @@ boxplot(box.ldoc ~ box.name,
 mtext(text = "a", side = 3, adj = 1, at = 0)
 
 text(x=1:9, y = -4,
-     paste(c("n = 55", "65", "229", "3", "20", "53", "45", "15", "25")),
+     paste(c("n = 55", "65", "229", "3", "20", "53", "42", "15", "28")),
      cex=.7) 
 abline(v = 8.5, lty=2, lwd=.8)
 
@@ -349,7 +362,7 @@ abline(v = 6.5, lty=2, lwd=.8)
 plot(BDOC ~ Environment, data = conceptual,
      ylim = c(0,30),
      xaxt="n",
-     ylab = "DOC consumption (%)",
+     ylab = "DOC consumed (%)",
      col = "white",
      las = 1)
 
@@ -379,7 +392,7 @@ dev.off()
 
 ```
 
-```{r echo = F}
+```{r}
 #Values for table 1, average LDOC and BDOC, range of LDOC and BDOC
 #Find how many incubations were made per system
 
@@ -415,7 +428,7 @@ Open9d = rep(6,length(LDOC9d[LDOC9d > 0 & Enriched_2 == 0 & Environment_2 == "Op
 DOC9d = as.factor(c(Coasts9d,Estuary9d,Sea9d,Lagoon9d,Lake9d,Open9d))
 
 
-summary(aov.9d <- aov(DOC9 ~ DOC9d)) #ANOVA, F(5, 74) = 2.289, p< 0.05, Holm p> 0.05
+summary(aov.9d <- aov(DOC9 ~ DOC9d)) #ANOVA, F(5, 74) = 2.697, p< 0.05, Holm p> 0.05
 posthoc.aov.9d <- TukeyHSD(aov.9d, "DOC9d", conf.level=0.95)
 posthoc.aov.9d
 posthoc.aov.9d.p <- posthoc.aov.9d$DOC9d[,4]
@@ -425,7 +438,7 @@ plot(posthoc.aov.9d, las=1)
 #LDOC values prior to 31 days of incubation
 min(na.omit(PercentL[PercentL > 0])) #0.18%
 max(na.omit(PercentL[PercentL > 0 & Enriched_2 == 0])) #54.35%
-mean(na.omit(PercentL[PercentL > 0 & Enriched_2 == 0])) #6.2%
+mean(na.omit(PercentL[PercentL > 0 & Enriched_2 == 0])) #6.12%
 sd(na.omit(PercentL[PercentL > 0 & Enriched_2 == 0]))/sqrt(length(na.omit(PercentL[PercentL > 0 & Enriched_2 == 0]))) #0.26 % standard error
 
 t.test(c(PercentL[PercentL > 0 & Enriched_2 == 0]), c(LDOC9d[LDOC9d > 0 & Enriched_2 == 0]), var.equal = T) #t = 1.37 p = 0.17
@@ -462,49 +475,47 @@ mean(na.omit(box.bdoc[box.name2 == 10])) #26.57% BDOC
 labile.frac = ifelse(Labile_time <= 31, LDOC / DOC_ini * 100, -1)
 labile.env = ifelse(Labile_time <= 31, as.character(Environment_2), -1)
   
-  Prod.ldoc = labile.frac[Enriched_2 == 1 & labile.frac > 0 & Environment != "river" & Environment != "wetland"]
-  Unprod.ldoc = labile.frac[Enriched_2 == 0 & labile.frac > 0& Environment != "river" & Environment != "wetland"]
+Prod.ldoc = labile.frac[Enriched_2 == 1 & labile.frac > 0 & Environment != "river" & Environment != "wetland"]
+Unprod.ldoc = labile.frac[Enriched_2 == 0 & labile.frac > 0& Environment != "river" & Environment != "wetland"]
   
-  Prod.ldoc.sqrt = Prod.ldoc ^ 0.5
-  Unprod.ldoc.sqrt = Unprod.ldoc ^ 0.5
-  ldoc.sqrt = c(Prod.ldoc.sqrt,Unprod.ldoc.sqrt)
+Prod.ldoc.sqrt = Prod.ldoc ^ 0.5
+Unprod.ldoc.sqrt = Unprod.ldoc ^ 0.5
+ldoc.sqrt = c(Prod.ldoc.sqrt,Unprod.ldoc.sqrt)
   
-  Prod.ldoc.log = log10(Prod.ldoc)
-  Unprod.ldoc.log = log10(Unprod.ldoc)
-  ldoc.log = c(Prod.ldoc.log,Unprod.ldoc.log)
-  ldoc.plot5 = c(Prod.ldoc, Unprod.ldoc)
+Prod.ldoc.log = log10(Prod.ldoc)
+Unprod.ldoc.log = log10(Unprod.ldoc)
+ldoc.log = c(Prod.ldoc.log,Unprod.ldoc.log)
+ldoc.plot5 = c(Prod.ldoc, Unprod.ldoc)
   
-  prod.name = pch[Enriched_2 == 1 & labile.frac > 0 & Environment != "river" & Environment != "wetland"]
-  unprod.name = pch[Enriched_2 == 0 & labile.frac > 0 & Environment != "river" & Environment != "wetland"]
-  box.name = c(prod.name,unprod.name)
+prod.name = pch[Enriched_2 == 1 & labile.frac > 0 & Environment != "river" & Environment != "wetland"]
+unprod.name = pch[Enriched_2 == 0 & labile.frac > 0 & Environment != "river" & Environment != "wetland"]
+box.name = c(prod.name,unprod.name)
  
-  prod.col = Enriched_2[Enriched_2 == 1 & labile.frac > 0 & Environment != "river" & Environment != "wetland"]
-  unprod.col = Enriched_2[Enriched_2 == 0 & labile.frac > 0 & Environment != "river" & Environment != "wetland"]
-  box.col = c(prod.col,unprod.col)
-  #river.name = as.vector(matrix(3, nrow = dim(river)[1]))
-  #lake.name = as.vector(matrix(4, nrow = length(lake)))
-  #wet.name = as.vector(matrix(2, nrow = dim(wetland)[1]))
-  col.name = box.name
-  col.name[col.name==22] = "#73BAE6" #Blue - estuaries
-  col.name[col.name == "8"] = "black" #- lakes
-  col.name[box.col == 0 & col.name != "#73BAE6" & col.name != "black"] = "#FFD700" #Gold - steady state
-  col.name[box.col == 1] = "#33a02c" #Green - high productivity
+prod.col = Enriched_2[Enriched_2 == 1 & labile.frac > 0 & Environment != "river" & Environment != "wetland"]
+unprod.col = Enriched_2[Enriched_2 == 0 & labile.frac > 0 & Environment != "river" & Environment != "wetland"]
+box.col = c(prod.col,unprod.col)
+#river.name = as.vector(matrix(3, nrow = dim(river)[1]))
+#lake.name = as.vector(matrix(4, nrow = length(lake)))
+#wet.name = as.vector(matrix(2, nrow = dim(wetland)[1]))
+col.name = box.name
+col.name[col.name==22] = "#73BAE6" #Blue - inland seas
+col.name[col.name == "8"] = "black" #- lakes
+col.name[box.col == 0 & col.name != "#73BAE6" & col.name != "black"] = "#FFD700" #Gold - steady state
+col.name[box.col == 1] = "#33a02c" #Green - high productivity
   
-  #ldoc.sqrt = PercentL[PercentL>0 & Environment != "Lake"]^.5
-  time.log10 = log10(DOC_ini[labile.frac>0 & Environment != "river" & Environment != "wetland"])
-  time.prod = DOC_ini[labile.frac > 0 & Enriched_2 == 1 & Environment != "river" & Environment != "wetland"]
-  time.unprod = DOC_ini[labile.frac > 0 & Enriched_2 == 0 & Environment != "river" & Environment != "wetland"]
-  time = c(time.prod, time.unprod)
-  unprod.sqrt= labile.frac[Enriched_2== 0 & labile.frac > 0 & Environment != "river" & Environment != "wetland"]^.5
-  time.unprod.log = log10(DOC_ini[Enriched_2== 0 & labile.frac > 0 & Environment != "river" & Environment != "wetland"])
-  prod.sqrt = labile.frac[Enriched_2== 1 & labile.frac > 0 & Environment != "river" & Environment != "wetland"]^.5
-  time.prod.log = log10(DOC_ini[Enriched_2== 1 & labile.frac > 0 & Environment != "river" & Environment != "wetland"])
+#ldoc.sqrt = PercentL[PercentL>0 & Environment != "Lake"]^.5
+time.log10 = log10(DOC_ini[labile.frac>0 & Environment != "river" & Environment != "wetland"])
+time.prod = DOC_ini[labile.frac > 0 & Enriched_2 == 1 & Environment != "river" & Environment != "wetland"]
+time.unprod = DOC_ini[labile.frac > 0 & Enriched_2 == 0 & Environment != "river" & Environment != "wetland"]
+time = c(time.prod, time.unprod)
+unprod.sqrt= labile.frac[Enriched_2== 0 & labile.frac > 0 & Environment != "river" & Environment != "wetland"]^.5
+time.unprod.log = log10(DOC_ini[Enriched_2== 0 & labile.frac > 0 & Environment != "river" & Environment != "wetland"])
+prod.sqrt = labile.frac[Enriched_2== 1 & labile.frac > 0 & Environment != "river" & Environment != "wetland"]^.5
+time.prod.log = log10(DOC_ini[Enriched_2== 1 & labile.frac > 0 & Environment != "river" & Environment != "wetland"])
 
   
 #BDOC (%) pour les experiences non-enrichies
-  
 #Test de la pente et l'intercept
-  
 semilabile.frac = ifelse(End_time > 31, DOC_L_SL / DOC_ini * 100, -1)
 semilabile.env = ifelse(End_time > 31, as.character(Environment_2), -1)
   
@@ -578,11 +589,10 @@ log10.DOC.prod.temp <- log10(DOC_ini[semilabile.frac>0&Enriched_2==1 & Environme
 DOC.prod.temp <- DOC_ini[semilabile.frac>0&Enriched_2==1& Environment_2!="Inland_sea" & Study!=25 & Environment != "Lake"]
   
   
-#BDOC (%) for estuaries
-  
-BDOC.Estuaire <- semilabile.frac[semilabile.frac > 0 & Environment_2=="Inland_sea" & Environment != "Lake"]
-log10.DOC.Estuaire <- log10(DOC_ini[semilabile.frac > 0 & Environment_2 == "Inland_sea" & Environment != "Lake"])
-DOC.Estuaire <- DOC_ini[semilabile.frac > 0 & Environment_2=="Inland_sea" & Environment != "Lake"]
+#BDOC (%) for Inland seas
+BDOC.Sea <- semilabile.frac[semilabile.frac > 0 & Environment_2=="Inland_sea" & Environment != "Lake"]
+log10.DOC.Sea <- log10(DOC_ini[semilabile.frac > 0 & Environment_2 == "Inland_sea" & Environment != "Lake"])
+DOC.Sea <- DOC_ini[semilabile.frac > 0 & Environment_2=="Inland_sea" & Environment != "Lake"]
   
 #BDOC (%) for lakes    
 BDOC.lake <- semilabile.frac[semilabile.frac > 0 &Environment=="Lake"]
@@ -600,35 +610,21 @@ LDOC.lm.prod.sqrt <- lm(Prod.ldoc.sqrt ~ time.prod.log)
 summary(LDOC.lm.prod.sqrt)  
 LDOC.lm.prod.log <- lm(Prod.ldoc.log ~ time.prod.log)
 summary(LDOC.lm.prod.log)
-#With all data R² = 0.18 p = 0.03
-#[Prod.ldoc.log < 1.5][DOC_ini < 300] w/o all potential outliers, R² = 0.37 p = 0.03
-#[DOC_ini < 300] w/o potential lake outliers, R² = 0.10 p = 0.24
-#[Prod.ldoc.log < 1.5] w/o potential coasts outliers, R² = 0.34 p < 0.01
+#With all data R² = 0.11 p = 0.08
+#[Prod.ldoc.log < 1.5][DOC_ini < 300] w/o all potential outliers, R² = 0.32 p = 0.02
+#[DOC_ini < 300] w/o potential lake outliers, R² = 0.10 p = 0.18
+#[Prod.ldoc.log < 1.5] w/o potential coasts outliers, R² = 0.16 p < 0.04
 
-#BDOC ~ DOC in estuaries
-lmEst <- lm(BDOC.Estuaire ~ log10.DOC.Estuaire)
-summary(lmEst)
+#BDOC ~ DOC in Inland seas
+lmSea <- lm(BDOC.Sea ~ log10.DOC.Sea)
+summary(lmSea)
 #BDOC ~ DOC in lakes
 lm4 <- lm(BDOC.lake ~ log10.DOC.lake)
 summary(lm4)
 
-#Plot for LDOC with square rooted data
-plot(ldoc.sqrt ~ time,
-    xlim=c(10,3000),
-    main="",
-    xlab = "Initial DOC (µM)",
-    ylab=expression(LDOC~"(%), "~sqrt("y")),
-    cex=1.3,
-    log="x",
-    xaxt = "n",
-    las = 1,
-    pch = box.name,
-    col = col.name,
-    bg = col.name)
-
 #Plots
-#To create the black and white version, open the pdf in inkscape and apply a Grey Scale color transformation
-pdf("../Figure/Figure 5 - Color v2.pdf",width = 8, height = 10)
+#png("./Figure 5 - Color.png",units = "in", width = 8, height = 10, res = 300) #Export in png
+pdf("./Figure 5 - Color.pdf",width = 8, height = 10) #Export in pdf
 #Outline parameters
 par(mfrow = c(2,1))
 par(mgp=c(2.3,1,0))
@@ -657,7 +653,7 @@ legend(x=7, y=50,
     text.font=1.5)  
 
 legend(x=8, y=17,
-    paste(c("Lake", "Lagoon", "Inland sea", "Estuary", "Coastal", "Open")),
+    paste(c("Lake", "Lagoon", "Inland sea", "Estuary", "Coastal", "Open ocean")),
     ncol=1,
     pch=c(8, 25, 22, 23, 24, 21),
     col="black",
@@ -670,6 +666,10 @@ axis(2, at = c(1,10), tck = -0.04, las = 1)
 
 mtext(text = "a", side = 3, adj = 1, at = 7.5)
 
+clip(x1 = 30,
+     x2 = 3000,
+     y1 = 1,
+     y2 = 50)
 abline(LDOC.lm.unprod.log, col="#FFD700", lwd=2)
 abline(LDOC.lm.prod.log, col="#33a02c", lwd=2)  
 
@@ -696,9 +696,9 @@ mtext(text = "b", side = 3, adj = 1, at = 7.5)
 abline(coef = c(Intercept.NBC$coefficients, 62.48), col="#FFD700",lwd=2) #NBC
 abline(coef = c(Intercept.BC$coefficients, 62.48), col="#33a02c",lwd=2) #BC
   
-#Add Estuaries
+#Add Inland seas
 par(new=T)
-plot(BDOC.Estuaire ~ DOC.Estuaire,
+plot(BDOC.Sea ~ DOC.Sea,
     xlim=c(10,3000),
     ylim=c(0,55),
     log="x",
@@ -712,7 +712,119 @@ plot(BDOC.Estuaire ~ DOC.Estuaire,
     bg = "#73BAE6",
     pch = 22)
   
-abline(lmEst,col="#73BAE6",lwd=2)
+abline(lmSea,col="#73BAE6",lwd=2)
+  
+#Add lakes
+par(new=T)
+plot(BDOC.lake ~ DOC.lake,
+    xlim=c(10,3000), 
+    ylim=c(0,55),
+    log="x",
+    main="",
+    xlab = "",
+    ylab="",
+    cex=1.5,
+    las=1,
+    axes=F,
+    col = "black",
+    bg = "black",
+    pch = 8)
+
+dev.off()
+
+#Same graph but in black and white
+col.name[col.name=="#73BAE6"] = "gray30" #Grey70 - inland seas
+col.name[col.name == "#FFD700"] = "gray55" #Grey55 - steady state
+col.name[col.name == "#33a02c"] = "gray75" #Grey75 - high productivity
+  
+#png("./Figure 5 - BW.png",units = "in", width = 8, height = 10, res = 300) #Export in png
+pdf("./Figure 5 - BW.pdf",width = 8, height = 10)
+#Outline parameters
+par(mfrow = c(2,1))
+par(mgp=c(2.3,1,0))
+par(mar=c(3.3,4,1,2)) 
+  
+#With loged data
+plot(ldoc.plot5 ~ time,
+    xlim=c(10,3000),
+    main="",
+    xlab = "Initial DOC (µM)",
+    ylab=expression(LDOC~"(%)"),
+    cex=1.3,
+    log="xy",
+    xaxt = "n",
+    yaxt = "n",
+    las = 1,
+    pch = box.name,
+    col = col.name,
+    bg = col.name)
+
+legend(x=7, y=50,
+    paste(c("High productivity","Steady state","Inland sea")),
+    text.col=c("gray75","gray55","gray30"),
+    bty = "n",
+    cex = 1,
+    text.font=1.5)  
+
+legend(x=8, y=17,
+    paste(c("Lake", "Lagoon", "Inland sea", "Estuary", "Coastal", "Open")),
+    ncol=1,
+    pch=c(8, 25, 22, 23, 24, 21),
+    col="black",
+    bty = "n")
+
+axis(1, log_tick_marks(1,3000),FALSE, TRUE, NA, NA)
+axis(1, at = c(10,100, 1000), tck = -0.04)
+axis(2, log_tick_marks(0.1,100),FALSE, TRUE, NA, NA)
+axis(2, at = c(1,10), tck = -0.04, las = 1)
+
+mtext(text = "a", side = 3, adj = 1, at = 7.5)
+
+clip(x1 = 30,
+     x2 = 3000,
+     y1 = 1,
+     y2 = 50)
+abline(LDOC.lm.unprod.log, col="gray55", lwd=2)
+abline(LDOC.lm.prod.log, col="gray75", lwd=2)  
+
+#Plots for BDOC
+plot(BDOC.temp ~ DOC.temp,
+    xlim=c(10,3000),
+    ylim=c(0,55),
+    log="x",
+    main="",
+    xlab = "Initial DOC (µM)",
+    ylab="BDOC (%)",
+    cex=1.5,
+    las = 1,
+    xaxt = "n",
+    col = ifelse(box.col == 0,"gray55","gray75"),
+    bg = ifelse(box.col == 0,"gray55","gray75"),
+    pch= box.name2)
+  
+axis(1, log_tick_marks(1,3000),FALSE, TRUE, NA, NA)
+axis(1, at = c(10,100, 1000), tck = -0.04)
+mtext(text = "b", side = 3, adj = 1, at = 7.5)
+abline(coef = c(Intercept.NBC$coefficients, 62.48), col="gray55",lwd=2) #NBC
+abline(coef = c(Intercept.BC$coefficients, 62.48), col="gray75",lwd=2) #BC
+  
+#Add Inland seas
+par(new=T)
+plot(BDOC.Sea ~ DOC.Sea,
+    xlim=c(10,3000),
+    ylim=c(0,55),
+    log="x",
+    main="",
+    xlab = "",
+    ylab="",
+    cex=1.5,
+    las=1,
+    axes=F,
+    col = "gray30",
+    bg = "gray30",
+    pch = 22)
+  
+abline(lmSea,col="gray30",lwd=2)
   
 #Add lakes
 par(new=T)
@@ -734,8 +846,7 @@ dev.off()
 
 ```
 
-
-```{r echo = FALSE}
+```{r}
 #Code for the multi-G model
 #Mean LDOC for lakes
 LDOC.lake = mean(na.omit(labile.frac[Enriched_2 == 0 & Environment == "Lake"])) 
@@ -761,6 +872,19 @@ G.unbin.lake <- nlsLM(BDOC.lake.all ~ G2*exp(-k2*laket) + G3,
 G.param.lake = summary(G.unbin.lake)$parameters
 R2.lake = 1- sum((BDOC.lake.all - predict(G.unbin.lake))^2) / sum((BDOC.lake.all-mean(BDOC.lake.all))^2)
 
+#Continuum model
+Cont.unbin.lake <- nlsLM(BDOC.lake.all ~ (a / (a + laket))^v,
+                      data = unbin.lake,
+                      start = list(a = 20, v = .1),
+                      lower = c(-2,-2),
+                      upper = c(60, 1))
+R2.lake.Cont = 1- sum((BDOC.lake.all - predict(Cont.unbin.lake))^2) / sum((BDOC.lake.all-mean(BDOC.lake.all))^2)
+
+AIC(Cont.unbin.lake) #-65.9
+AIC(G.unbin.lake) #-69.7
+BIC(Cont.unbin.lake) #-62.2
+BIC(G.unbin.lake) #-64.7
+
 #Mean Coast LDOC
 LDOC.Coast = mean(na.omit(labile.frac[Enriched_2 == 0 & Environment_2 == "Coastal"])) 
 #Mean Coast incubation time for LDOC
@@ -770,6 +894,11 @@ BDOC.Coast = PercentSL[Enriched_2 == 0 & PercentSL > 0 & Environment_2 == "Coast
 #Vector of Coast time corresponding to BDOC
 BDOC.Coastt = End_time[Enriched_2 == 0 & PercentSL > 0 & Environment_2 == "Coastal" & End_time > 31] 
 
+#Lake.pch = as.numeric(as.factor(na.omit(Study[Enriched_2 == 0 & Environment == "Lake" & End_time > 31])))
+#Lake.pch = c(7, 8, Lake.pch)
+#Coast.pch = as.numeric(as.factor(na.omit(Study[Enriched_2 == 0 & Environment_2 == "Coastal" & End_time > 31])))+8
+#Coast.pch = c(7, 8, Coast.pch)
+  
 #All Coast time, including initial concentration at time 0
 Coastt = c(0,LDOC.Coastt,BDOC.Coastt) 
 #vector of LDOC and BDOC in Coast
@@ -788,13 +917,24 @@ G.unbin.Coast <- nlsLM(BDOC.Coast.all ~ G2*exp(-k2*Coastt) + G3,
 G.param.Coast = summary(G.unbin.Coast)$parameters
 R2.coast = 1- sum((BDOC.Coast.all - predict(G.unbin.Coast))^2) / sum((BDOC.Coast.all-mean(BDOC.Coast.all))^2)
 
+Cont.unbin.Coast <- nlsLM(BDOC.Coast.all ~ (a / (a + Coastt))^v,
+                       data = unbin.Coast,
+                       start = list(a = 56, v = .1),
+                       lower = c(-2,-2),
+                       upper = c(60, 1))
+R2.coast.cont = 1- sum((BDOC.Coast.all - predict(Cont.unbin.Coast))^2) / sum((BDOC.Coast.all-mean(BDOC.Coast.all))^2)
+
+AIC(Cont.unbin.Coast) #-106.17
+AIC(G.unbin.Coast) #-106.74
+BIC(Cont.unbin.Coast) #-101.03
+BIC(G.unbin.Coast) #-99.88
 
 ```
 
-
 ```{r}
 #Create multi-G plot
-pdf(file = "./Figure 6 - BW.pdf",family = "ArialMT", width = 6.2, height = 3.33)
+png(file = "./Figure 6 - BW.png",unit = "in", res = 300, family = "ArialMT", width = 6.2, height = 3.33)
+#pdf(file = "./Figure 6 - BW.pdf",family = "ArialMT", width = 6.2, height = 3.33)
 par(mfrow = c(1,2))
 par(mgp=c(2.5,1,0))
 par(mar=c(4,3.5,1.3,.4))
@@ -811,6 +951,8 @@ plot(BDOC.lake.all ~ laket,
      cex.axis = 1.2,
      cex.lab = 1.2)
 curve(G.param.lake[1] * exp(-G.param.lake[2] * x) + G.param.lake[3], add=T) 
+#curve((Cont.param.lake[1] / (Cont.param.lake[1] + x))^Cont.param.lake[2], add=T, col = "red", lwd = 2)
+
 curve((G.param.lake[1] + G.param.lake[4]) * exp(-(G.param.lake[2] - G.param.lake[5]) * x) + (G.param.lake[3] + G.param.lake[6]) , lty = 2, add=T) 
 curve((G.param.lake[1] - G.param.lake[4]) * exp(-(G.param.lake[2] + G.param.lake[5]) * x) + (G.param.lake[3] - G.param.lake[6]), lty = 2, add=T)
 mtext(text = "a", side = 3, adj = 1, at = -20)
@@ -830,80 +972,11 @@ plot(BDOC.Coast.all ~ Coastt,
      cex.lab = 1.2)
 
 curve(G.param.Coast[1] * exp(-G.param.Coast[2] * x) + G.param.Coast[3], add=T) 
+#curve((Cont.param.Coast[1] / (Cont.param.Coast[1] + x))^Cont.param.Coast[2], add=T, col = "red")
+
 curve((G.param.Coast[1] + G.param.Coast[4]) * exp(-(G.param.Coast[2] - G.param.Coast[5]) * x) + (G.param.Coast[3] + G.param.Coast[6]) , lty = 2, add=T) 
 curve((G.param.Coast[1] - G.param.Coast[4]) * exp(-(G.param.Coast[2] + G.param.Coast[5]) * x) + (G.param.Coast[3] - G.param.Coast[6]), lty = 2, add=T)
 mtext(text = "b", side = 3, adj = 1, at = -20)
 
 dev.off()
-```
-
-```{r}
-#Create extrapolation matrix
-extrap = t(data.frame(
-  Volume = c(0.039*10^6, 0.0306 * 10^6, 0.7602*10^6, 33.666*10^6),
-  Conc = c(1895/3 *10^-6, 500/3 *10^-6, 126.4 *10^-6, 63.4 *10^-6),
-  "Bulk DOC" = c(NA, NA, NA, NA),
-  "Bulk LDOC" = c(NA, NA, NA, NA),
-  "Bulk SLDOC" = c(NA, NA, NA, NA),
-                    
-  "Biomass LDOC" = c(NA, NA, NA, NA),
-  "Biomass SLDOC" = c(NA, NA, NA, NA),
-                    
-  "P.Biomass LDOC" = c(NA, NA, NA, NA),
-  "P.Biomass SLDOC" = c(NA, NA, NA, NA)))
-#Insert colnames
-colnames(extrap) = c("Small", "Large", "Coasts", "Oceans")
-
-#Calculate Bulk (S)(L)DOC values
-extrap[3,] = t(extrap["Volume",] * extrap["Conc",]) #Bulk DOC
-extrap[4,] = extrap[3,] * 0.06 #Bulk LDOc
-extrap[5,] = extrap[3,] * c(0.16, 0.16, 0.04, 0) #Bulk SLDOC
-
-#Estimate prokaryotic biomass based on BGE and Bulk values
-BGE = c(0.248, 0.248, 0.34, 0.1)
-extrap[6,] = extrap[4,] * BGE #Biomass LDOC
-extrap[7,] = extrap[5,] * BGE #Biomass SLDOC
-
-#Transfer biomass (Tmols) into percentages
-LDOCsum = sum(extrap[6,])
-SLDOCsum = sum(extrap[7,])
-extrap[8,] = extrap[6,] / LDOCsum * 100
-extrap[9,] = extrap[7,] / SLDOCsum * 100
-
-#Data for graph
-extrap.graph = cbind(extrap[c(4,5,6,7),1] + extrap[c(4,5,6,7),2],
-                     extrap[c(4,5,6,7),3],
-                     extrap[c(4,5,6,7),4])
-
-colnames(extrap.graph) = c("Lakes", "Coasts", "Oceans")
-extrap.graph[2,3] = 100 #Adding values for OO's SLDOC based on Hansell 2013
-extrap.graph = t(extrap.graph)
-#Separating the matrix for the 2 axes
-extrap.graph.bulk = extrap.graph[,c(1,2)]
-extrap.graph.bulk = cbind(extrap.graph.bulk, NA, NA)
-extrap.graph.bio = extrap.graph[,c(3,4)]
-extrap.graph.bio = cbind(NA, NA, extrap.graph.bio)
-#Create de barplot
-
-par(mar = c(5, 4, 4, 4) + 0.3)
-barplot(extrap.graph.bulk,
-        names.arg = c("","","",""),
-        las = 1,
-        ylab = "Standing stock (Tmol)",
-        beside = FALSE,
-        space = 1)
-par(new = TRUE)
-barplot(extrap.graph.bio,
-        names.arg = c("","","",""),
-        axes = FALSE,
-        beside = FALSE,
-        space = 1)
-axis(side=4, at = c(0, 5, 10, 15), las = 1)
-mtext("Biomass (Tmol)", side=4, line=3)
-axis(side = 1,
-     at = c(1.5, 3.5, 5.5, 7.5),
-     cex = 2,
-     col = "white",
-     labels = c("LDOC","SLDOC","LDOC-biomass","SLDOC-biomass"))
-
 ```
