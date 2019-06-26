@@ -74,6 +74,7 @@ summary(lm(y.ocean[x.ocean <= 31] ~ x.ocean[x.ocean <= 31]))
 lin.mod = lm(y.ocean ~ x.ocean)
 AIC(piecewise.ocean) #1201.99
 AIC(lin.mod) #1206.77
+AIC(lin.mod) - AIC(piecewise.ocean) # 4.78
 BIC(piecewise.ocean) #1217.87
 BIC(lin.mod) #1216.3
 
@@ -101,11 +102,12 @@ summary(lm(y.lake[x.lake <= 1.556303] ~ x.lake[x.lake < 1.556303]))
 #Compare both regressions with AIC and BIC
 AIC(piecewise2) #1417.4
 AIC(lm(y.lake ~ x.lake)) #1436.7
+AIC(lm(y.lake ~ x.lake)) - AIC(piecewise2) #19.34
 BIC(piecewise2) #1435.0
 BIC(lm(y.lake ~ x.lake)) #1447.3
 
 #Export third graph in pdf format
-pdf("./Figure 3.pdf", family = "ArialMT", height = 8, width = 5)
+pdf("./Figure 2.pdf", family = "ArialMT", height = 8, width = 5)
 #Graphics parameter
 par(mfrow = c(2,1))
 par(mgp=c(2.3,1,0))
@@ -263,7 +265,6 @@ posthoc.ldoc <- TukeyHSD(aov.boxplot.ldoc, "box.name", conf.level=0.95)
 posthoc.ldoc
 posthoc.ldoc.p <- posthoc.ldoc$box.name[,4]
 p.adjust(posthoc.ldoc.p, "holm", 36)
-plot(posthoc.ldoc,las=1)
 
 #Without system under bloom condition
 box.ldoc.2 = box.ldoc[box.name!="10"]
@@ -272,18 +273,20 @@ box.name.2 = as.factor(box.name.2)
 summary(aov.boxplot.ldoc.2 <- aov(box.ldoc.2 ~ box.name.2)) #ANOVA, F = 4.003, df = 477
 posthoc.ldoc.2 <- TukeyHSD(aov.boxplot.ldoc.2, "box.name.2", conf.level=0.95)
 posthoc.ldoc.2
-plot(posthoc.ldoc.2, las=1)
+posthoc.ldoc.2.p <- posthoc.ldoc.2$box.name.2[,4]
+p.adjust(posthoc.ldoc.2.p, "holm", 28)
+
 
 #Test what is significantly different in terms of BDOC
 box.name2 = as.factor(box.name2)
-summary(aov.boxplot.bdoc <- aov(box.bdoc ~ box.name2)) #ANOVA, F = 16.56, df = 184
+summary(aov.boxplot.bdoc <- aov(box.bdoc ~ box.name2)) #ANOVA, F = 16.47, df = 6, 184
 posthoc.bdoc <- TukeyHSD(aov.boxplot.bdoc, "box.name2", conf.level=0.95)
 plot(posthoc.bdoc, las = 1)
 
 box.bdoc.2 = box.bdoc[box.name2!="10"]
 box.name.3 = box.name2[box.name2!="10"]
 box.name.3 = as.factor(box.name.3)
-summary(aov.boxplot.bdoc.2 <- aov(box.bdoc.2 ~ box.name.3)) #ANOVA, F(5, 141) = 9.16, p < 0.05
+summary(aov.boxplot.bdoc.2 <- aov(box.bdoc.2 ~ box.name.3)) #ANOVA, F(5, 141) = 9.16, p < 0.05 (not shown)
 posthoc.bdoc.2 <- TukeyHSD(aov.boxplot.bdoc.2, "box.name.3", conf.level=0.95)
 posthoc.bdoc.2.p <- posthoc.bdoc.2$box.name.3[,4]
 p.adjust(posthoc.bdoc.2.p, "holm", 15)
@@ -292,21 +295,21 @@ plot(posthoc.bdoc.2, las=1)
 
 ```{r}
 #Mean values ± se for ldoc
-mean(na.omit(box.ldoc[box.name == "4"])) #Lakes 5.17 ± 0.28
-mean(na.omit(box.ldoc[box.name == "5"])) #Lagoons 5.77 ± 2.38
-mean(na.omit(box.ldoc[box.name == "6"])) #Inland seas 6.66 ± 0.95
-mean(na.omit(box.ldoc[box.name == "7"])) #Estuaries 6.16 ± 0.53
-mean(na.omit(box.ldoc[box.name == "8"])) #Coasts 5.49 ± 0.71
-mean(na.omit(box.ldoc[box.name == "9"])) #Open ocean 5.19 ± 0.99
+ldoc1 = mean(na.omit(box.ldoc[box.name == "4"])) #Lakes 5.17 ± 0.28
+ldoc2 = mean(na.omit(box.ldoc[box.name == "5"])) #Lagoons 5.77 ± 2.38
+ldoc3 = mean(na.omit(box.ldoc[box.name == "6"])) #Inland seas 6.66 ± 0.95
+ldoc4 = mean(na.omit(box.ldoc[box.name == "7"])) #Estuaries 6.16 ± 0.53
+ldoc5 = mean(na.omit(box.ldoc[box.name == "8"])) #Coasts 5.49 ± 0.71
+ldoc6 = mean(na.omit(box.ldoc[box.name == "9"])) #Open ocean 5.19 ± 0.99
 mean(na.omit(box.ldoc[box.name == "10"])) #Productive systems 16.3 ± 1.76%
 
 #Mean values ± se for BDOC
-mean(na.omit(box.bdoc[box.name2 == "2"])) #Lakes 21.16 ± 1.88
-mean(na.omit(box.bdoc[box.name2 == "3"])) #Lagoons 19.46 ± 1.52
-mean(na.omit(box.bdoc[box.name2 == "4"])) #Inlands seas 16.79 ± 1.53
-mean(na.omit(box.bdoc[box.name2 == "5"])) #Estuaries 13.39 ± 1.84
-mean(na.omit(box.bdoc[box.name2 == "6"])) #Coasts 10.52 ± 1.23
-mean(na.omit(box.bdoc[box.name2 == "7"])) #Open ocean 3.87 ± 0.63
+bdoc1 = mean(na.omit(box.bdoc[box.name2 == "2"])) #Lakes 21.16 ± 1.88
+bdoc2 = mean(na.omit(box.bdoc[box.name2 == "3"])) #Lagoons 19.46 ± 1.52
+bdoc3 = mean(na.omit(box.bdoc[box.name2 == "4"])) #Inlands seas 16.79 ± 1.53
+bdoc4 = mean(na.omit(box.bdoc[box.name2 == "5"])) #Estuaries 13.39 ± 1.84
+bdoc5 = mean(na.omit(box.bdoc[box.name2 == "6"])) #Coasts 10.52 ± 1.23
+bdoc6 = mean(na.omit(box.bdoc[box.name2 == "7"])) #Open ocean 3.87 ± 0.63 -> We use ldoc values since BDOC can't be lower than ldoc
 mean(na.omit(box.bdoc[box.name2 == "10"])) #Productive systems 26.57% ± 1.60%
 
 SLDOCLake = c(mean(na.omit(box.bdoc[box.name2 == "2"]))-mean(na.omit(box.ldoc[box.name == "4"]))) # 15.98%
@@ -318,8 +321,8 @@ SLDOCOO = c(mean(na.omit(box.bdoc[box.name2 == "7"]))-mean(na.omit(box.ldoc[box.
 SLDOCProd = mean(na.omit(box.bdoc[box.name2 == "10"])) - mean(na.omit(box.ldoc[box.name == "10"])) #10.25
 
 #Create a matrix with the above values
-conceptual <- data.frame(LDOC = c(5.17,5.77,6.66,6.16,5.49,5.19,NA),
-                         BDOC = c(21.16,19.46,16.79,13.39,10.52,5.19,NA),
+conceptual <- data.frame(LDOC = c(ldoc1,ldoc2,ldoc3,ldoc4,ldoc5,ldoc6,NA),
+                         BDOC = c(bdoc1,bdoc2,bdoc3,bdoc4,bdoc5,ldoc6,NA),
                          Environment = c(1,2,3,4,5,6,7))
 
 HP <- read.table(text = "A   B   C   D   E   F    G
@@ -329,7 +332,7 @@ HP <- read.table(text = "A   B   C   D   E   F    G
 #Used LDOC for BDOC because it is impossible to have lower BDOC than LDOC
 
 
-pdf("./Figure 4 - BW.pdf", family = "ArialMT", width = 7, height = 15)
+pdf("./Figure 3 - BW.pdf", family = "ArialMT", width = 7, height = 15)
 par(mfrow = c(3,1))
 par(mgp=c(2.3,1,0))
 par(mar=c(3.3,4,0.8,2))
@@ -364,6 +367,7 @@ abline(v = 6.5, lty=2, lwd=.8)
 plot(BDOC ~ Environment, data = conceptual,
      ylim = c(0,30),
      xaxt="n",
+     xlab = "Ecosystems",
      ylab = "DOC consumed (%)",
      col = "white",
      las = 1)
@@ -430,12 +434,11 @@ Open9d = rep(6,length(LDOC9d[LDOC9d > 0 & Enriched_2 == 0 & Environment_2 == "Op
 DOC9d = as.factor(c(Coasts9d,Estuary9d,Sea9d,Lagoon9d,Lake9d,Open9d))
 
 
-summary(aov.9d <- aov(DOC9 ~ DOC9d)) #ANOVA, F(5, 74) = 2.697, p< 0.05, Holm p> 0.05
+summary(aov.9d <- aov(DOC9 ~ DOC9d)) #ANOVA, F(5, 74) = 2.697, p< 0.05, Holm p = 0.37
 posthoc.aov.9d <- TukeyHSD(aov.9d, "DOC9d", conf.level=0.95)
 posthoc.aov.9d
 posthoc.aov.9d.p <- posthoc.aov.9d$DOC9d[,4]
 p.adjust(posthoc.aov.9d.p, "holm", 15)
-plot(posthoc.aov.9d, las=1)
 
 #LDOC values prior to 31 days of incubation
 min(na.omit(PercentL[PercentL > 0])) #0.18%
@@ -446,14 +449,14 @@ sd(na.omit(PercentL[PercentL > 0 & Enriched_2 == 0]))/sqrt(length(na.omit(Percen
 t.test(c(PercentL[PercentL > 0 & Enriched_2 == 0]), c(LDOC9d[LDOC9d > 0 & Enriched_2 == 0]), var.equal = T) #t = 1.37 p = 0.17
 
 #LDOC
-length(na.omit(Prod.ldoc)) #Number under bloom conditions 25
+length(na.omit(Prod.ldoc)) #Number under bloom conditions 28
 length(na.omit(wetland)) #Number of wetlands 55
 length(na.omit(river)) #Number of rivers 65
 length(na.omit(lake)) #Number of lakes 229
 length(na.omit(box.name[box.name == 5])) #Number of lagoons 3
 length(na.omit(box.name[box.name == 6])) #Number of inland seas 20 
 length(na.omit(box.name[box.name == 7])) #Numbers of estuaries 53
-length(na.omit(box.name[box.name == 8])) #Number of coasts 45
+length(na.omit(box.name[box.name == 8])) #Number of coasts 42
 length(na.omit(box.name[box.name == 9])) #Number of open ocean 15
 
 #BDOC
@@ -468,8 +471,8 @@ length(na.omit(box.name2[box.name2==7]))#Number of open ocean 13
 #Minimum, maximum, average and standard deviation of LDOC for systems under bloom conditions
 min(na.omit(box.ldoc[box.name == 10])) #5.27%
 max(na.omit(box.ldoc[box.name == 10])) #40.4%
-mean(na.omit(box.ldoc[box.name == 10])) #15.7%
-sd(na.omit(box.ldoc[box.name == 10]))/sqrt(length(na.omit(box.ldoc[box.name == 10]))) #1.89%
+mean(na.omit(box.ldoc[box.name == 10])) #16.3%
+sd(na.omit(box.ldoc[box.name == 10]))/sqrt(length(na.omit(box.ldoc[box.name == 10]))) #1.755%
 mean(na.omit(box.bdoc[box.name2 == 10])) #26.57% BDOC
 ``` 
 
@@ -538,17 +541,17 @@ Enriched.temp <- Enriched_2[semilabile.frac >0 & Environment_2!="Inland_sea" & S
 #ANCOVA for BDOC in BC vs in non BC
 ancova.pente.model.BDOC = aov(BDOC.temp ~ log.DOC.temp * Enriched.temp)
 summary(ancova.pente.model.BDOC) # Same slopes for BC and non BC 
-#ANCOVA, F(1, 103) = 0.65, df = 104p = 0.42)
+#ANCOVA, F(1, 103) = 0.65, p = 0.42)
 
 ancova.inter.model.BDOC = aov(BDOC.temp ~ log.DOC.temp + Enriched.temp)
 summary(ancova.inter.model.BDOC) #Different intercepts
-#ANCOVA, F(1 ,104) = 9.73, df = 105, p < 0.05
+#ANCOVA, F(1 ,104) = 9.73, p < 0.05
 
 ancova.base.model.BDOC = aov(BDOC.temp ~ log.DOC.temp)
 anova(ancova.pente.model.BDOC,ancova.inter.model.BDOC) #ancova.inter.model.BDOC is more parcimonious and better
 anova(ancova.inter.model.BDOC, ancova.base.model.BDOC) #ancova.inter.model.BDOC is better
 
-#Weigthed slope for BC and NBC 62.48
+#Weigthed slope for BC and NBC 62.48 (slope BC * nBC + slopeNBC * nNBC) / ntotal
 #Find the centroids
 BC.y = BDOC.temp[Enriched.temp==1] #26.57
 BC.x = log.DOC.temp[Enriched.temp==1] # 2.02
@@ -625,8 +628,8 @@ lm4 <- lm(BDOC.lake ~ log10.DOC.lake)
 summary(lm4)
 
 #Plots
-#png("./Figure 5 - Color.png",units = "in", width = 8, height = 10, res = 300) #Export in png
-pdf("./Figure 5 - Color.pdf",width = 8, height = 10) #Export in pdf
+#png("./Figure 4 - Color.png",units = "in", width = 8, height = 10, res = 300) #Export in png
+pdf("./Figure 4 - Color.pdf",width = 8, height = 10) #Export in pdf
 #Outline parameters
 par(mfrow = c(2,1))
 par(mgp=c(2.3,1,0))
@@ -738,8 +741,8 @@ col.name[col.name=="#73BAE6"] = "gray30" #Grey70 - inland seas
 col.name[col.name == "#FFD700"] = "gray55" #Grey55 - steady state
 col.name[col.name == "#33a02c"] = "gray75" #Grey75 - high productivity
   
-#png("./Figure 5 - BW.png",units = "in", width = 8, height = 10, res = 300) #Export in png
-pdf("./Figure 5 - BW.pdf",width = 8, height = 10)
+#png("./Figure 4 - BW.png",units = "in", width = 8, height = 10, res = 300) #Export in png
+pdf("./Figure 4 - BW.pdf",width = 8, height = 10)
 #Outline parameters
 par(mfrow = c(2,1))
 par(mgp=c(2.3,1,0))
@@ -860,31 +863,31 @@ BDOC.laket = End_time[End_time > 31 & PercentSL > 0 & Enriched_2==0 & Environmen
 #All lake time, including initial concentration at time 0
 laket = c(0,ldoc.laket,BDOC.laket) 
 #vector of LDOC and BDOC in lakes
-BDOC.lake.all = c(1,1-LDOC.lake/100,1-BDOC.lake/100) 
+BDOC.lake.all = c(100,100-LDOC.lake,100-BDOC.lake) 
 #Dataframe with time and DOC
 unbin.lake = as.data.frame(cbind(laket,BDOC.lake.all)) 
 
 G.unbin.lake <- nlsLM(BDOC.lake.all ~ G2*exp(-k2*laket) + G3,
                       data = unbin.lake,
-                      start = list(G2 = .5, k2 = 0.02, G3 = .7),
-                      lower = c(.1,0.001,.5),
-                      upper = c(1, .04, .8))
+                      start = list(G2 = 50, k2 = 0.02, G3 = 70),
+                      lower = c(10,0.001, 50),
+                      upper = c(100, .04, 80))
 
 G.param.lake = summary(G.unbin.lake)$parameters
 R2.lake = 1- sum((BDOC.lake.all - predict(G.unbin.lake))^2) / sum((BDOC.lake.all-mean(BDOC.lake.all))^2)
 
 #Continuum model
-Cont.unbin.lake <- nlsLM(BDOC.lake.all ~ (a / (a + laket))^v,
+Cont.unbin.lake <- nlsLM(BDOC.lake.all ~ 100*(a / (a + laket))^v,
                       data = unbin.lake,
-                      start = list(a = 20, v = .1),
+                      start = list(a = 56, v = .1),
                       lower = c(-2,-2),
-                      upper = c(60, 1))
+                      upper = c(60, 10))
 R2.lake.Cont = 1- sum((BDOC.lake.all - predict(Cont.unbin.lake))^2) / sum((BDOC.lake.all-mean(BDOC.lake.all))^2)
 
-AIC(Cont.unbin.lake) #-65.9
-AIC(G.unbin.lake) #-69.7
-BIC(Cont.unbin.lake) #-62.2
-BIC(G.unbin.lake) #-64.7
+AIC(Cont.unbin.lake) #173.5
+AIC(G.unbin.lake) #169.7
+BIC(Cont.unbin.lake) #177.3
+BIC(G.unbin.lake) #174.8
 
 #Mean Coast LDOC
 LDOC.Coast = mean(na.omit(labile.frac[Enriched_2 == 0 & Environment_2 == "Coastal"])) 
@@ -895,15 +898,15 @@ BDOC.Coast = PercentSL[Enriched_2 == 0 & PercentSL > 0 & Environment_2 == "Coast
 #Vector of Coast time corresponding to BDOC
 BDOC.Coastt = End_time[Enriched_2 == 0 & PercentSL > 0 & Environment_2 == "Coastal" & End_time > 31] 
 
-#Lake.pch = as.numeric(as.factor(na.omit(Study[Enriched_2 == 0 & Environment == "Lake" & End_time > 31])))
-#Lake.pch = c(7, 8, Lake.pch)
-#Coast.pch = as.numeric(as.factor(na.omit(Study[Enriched_2 == 0 & Environment_2 == "Coastal" & End_time > 31])))+8
-#Coast.pch = c(7, 8, Coast.pch)
+Lake.pch = as.numeric(as.factor(na.omit(Study[Enriched_2 == 0 & Environment == "Lake" & End_time > 31])))+1
+Lake.pch = c(0, 1, Lake.pch)
+Coast.pch = as.numeric(as.factor(na.omit(Study[Enriched_2 == 0 & Environment_2 == "Coastal" & End_time > 31])))+7
+Coast.pch = c(0, 1, Coast.pch)
   
 #All Coast time, including initial concentration at time 0
 Coastt = c(0,LDOC.Coastt,BDOC.Coastt) 
 #vector of LDOC and BDOC in Coast
-BDOC.Coast.all = c(1,1-LDOC.Coast/100,1-BDOC.Coast/100) 
+BDOC.Coast.all = c(100,100-LDOC.Coast,100-BDOC.Coast) 
 
 #Dataframe with time and DOC
 unbin.Coast = as.data.frame(cbind(Coastt,BDOC.Coast.all)) 
@@ -912,45 +915,46 @@ unbin.Coast = as.data.frame(cbind(Coastt,BDOC.Coast.all))
 #2 pool multi-G
 G.unbin.Coast <- nlsLM(BDOC.Coast.all ~ G2*exp(-k2*Coastt) + G3,
                        data = unbin.Coast,
-                       start = list(G2 = .3, k2 = 0.02, G3 = .8),
-                       lower = c(.1,0.001,.5),
-                       upper = c(.50, .04, .9))
+                       start = list(G2 = 30, k2 = 0.02, G3 = 80),
+                       lower = c(10,0.001,50),
+                       upper = c(50, .04, 90))
 G.param.Coast = summary(G.unbin.Coast)$parameters
 R2.coast = 1- sum((BDOC.Coast.all - predict(G.unbin.Coast))^2) / sum((BDOC.Coast.all-mean(BDOC.Coast.all))^2)
 
-Cont.unbin.Coast <- nlsLM(BDOC.Coast.all ~ (a / (a + Coastt))^v,
+Cont.unbin.Coast <- nlsLM(BDOC.Coast.all ~ 100*(a / (a + Coastt))^v,
                        data = unbin.Coast,
                        start = list(a = 56, v = .1),
                        lower = c(-2,-2),
-                       upper = c(60, 1))
+                       upper = c(60, 10))
 R2.coast.cont = 1- sum((BDOC.Coast.all - predict(Cont.unbin.Coast))^2) / sum((BDOC.Coast.all-mean(BDOC.Coast.all))^2)
 
-AIC(Cont.unbin.Coast) #-106.17
-AIC(G.unbin.Coast) #-106.74
-BIC(Cont.unbin.Coast) #-101.03
-BIC(G.unbin.Coast) #-99.88
+AIC(Cont.unbin.Coast) #271.5
+AIC(G.unbin.Coast) #270.9
+BIC(Cont.unbin.Coast) #276.6
+BIC(G.unbin.Coast) #277.7
 
 ```
 
 ```{r}
 #Create multi-G plot
-png(file = "./Figure 6 - BW.png",unit = "in", res = 300, family = "ArialMT", width = 6.2, height = 3.33)
-#pdf(file = "./Figure 6 - BW.pdf",family = "ArialMT", width = 6.2, height = 3.33)
+png(file = "./Figure 5 - BW.png",unit = "in", res = 300, family = "ArialMT", width = 6.2, height = 3.33)
+#pdf(file = "./Figure 5 - BW.pdf",family = "ArialMT", width = 6.2, height = 3.33)
 par(mfrow = c(1,2))
 par(mgp=c(2.5,1,0))
 par(mar=c(4,3.5,1.3,.4))
 
 plot(BDOC.lake.all ~ laket, 
      xlim = c(0,400), 
-     ylim = c(0.6, 1),
+     ylim = c(60, 100),
      main = "Lakes",
      xlab = "Time (d)", 
      ylab = "DOC (%)",
-     pch = 19,
+     pch = Lake.pch,
      cex = .8,
      las=1,
      cex.axis = 1.2,
      cex.lab = 1.2)
+
 curve(G.param.lake[1] * exp(-G.param.lake[2] * x) + G.param.lake[3], add=T) 
 #curve((Cont.param.lake[1] / (Cont.param.lake[1] + x))^Cont.param.lake[2], add=T, col = "red", lwd = 2)
 
@@ -961,17 +965,19 @@ mtext(text = "a", side = 3, adj = 1, at = -20)
 
 plot(BDOC.Coast.all ~ Coastt,
      xlim = c(0,400),
-     ylim = c(0.6, 1),
+     ylim = c(60, 100),
+     yaxt = "n",
      main = "Coasts",
      xlab = "Time (d)",
      ylab = "",
      yaxt = "n",
-     pch = 19,
+     pch = Coast.pch,
      cex = .8,
      las=1,
      cex.axis = 1.2,
      cex.lab = 1.2)
 
+axis(2, at = c(60, 70, 80, 90, 100), labels = c("60", "70", "80", "90", "100"), las = 2)
 curve(G.param.Coast[1] * exp(-G.param.Coast[2] * x) + G.param.Coast[3], add=T) 
 #curve((Cont.param.Coast[1] / (Cont.param.Coast[1] + x))^Cont.param.Coast[2], add=T, col = "red")
 
