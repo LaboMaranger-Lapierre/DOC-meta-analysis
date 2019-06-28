@@ -7,3 +7,5 @@ All data required to reproduced the results presented in LaBrie et al. 2019 are 
 The file has to be in the same folder as Script.Rmd
 
 Script.Rmd will reproduce graphics and statistical analysis.
+
+https://zenodo.org/badge/latestdoi/130365500
