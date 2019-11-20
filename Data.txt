@@ -91,8 +91,6 @@ Study	Authors	Lon	Lat	Region	Environment	Environment_2	Environment_4	Temp_insitu
 16	Kähler	-6	-56.5	Antarctic	Open	Open	NA	1	1	0.8	5	Nothing	NA	NA	1000m	0	21	38	NA	36.9	NA	1.1	NA	13	1.1	13
 17	Letscher	-80	-20	South_Pacific	Coastal	Coastal	NA	NA	20	0.2	9	Full	1	surface_(coastal)	Sea_water	0	24	80.5	NA	80.5	NA	0	NA	14	0	14
 17	Letscher	-100	-20	South_Pacific	Open	Open	NA	NA	20	0.2	9	Full	1	surface_(open)	Sea_water	0	21	66	66	66	0	0	9	9	0	9
-17	Letscher	-80	-20	South_Pacific	Coastal	Coastal	NA	NA	20	0.2	9	Full	1	100_m_deep_(coastal)	Sea_water	0	24	76.5	NA	56	NA	20.5	NA	14	20.5	14
-17	Letscher	-100	-20	South_Pacific	Open	Open	NA	NA	20	0.2	9	Full	1	200_m_deep_(open)	Sea_water	0	21	63	60	60	3	3	9	9	3	9
 18	Liu	127	15.59	North_Pacific	Open	Open	NA	NA	28	3	20	Nothing	NA	NA	Sea_water	0	21	81.5	74	74	7.5	7.5	7	7	7.5	7
 19	Lonborg	-5.23	56.315	North_Atlantic	Coastal	Coastal	NA	13.84	14	0.7	1.52	1.2	0.08	28/07/2006	Loch_Crean	1	24	132.4	NA	83	NA	49.4	NA	150	NA	NA
 19	Lonborg	-5.23	56.315	North_Atlantic	Coastal	Coastal	NA	13.829	14	0.7	1.52	1.2	0.08	11/08/2006	Loch_Crean	1	24	133	NA	81	NA	52	NA	152	NA	NA
@@ -635,8 +633,8 @@ Study	Authors	Lon	Lat	Region	Environment	Environment_2	Environment_4	Temp_insitu
 42	Lapierre	-79.03635	49.74483	Boreal	river	river	North_Quebec	NA	20	NA	NA	Nothing	Nothing	Inter-Nord_Suivit	Inter-Nord_Suivit	0	8	1434.5	NA	727.966666666667	NA	706.533333333333	NA	14	706.533333333333	14
 42	Lapierre	-79.5119	48.49388	Boreal	wetland	wetland	North_Quebec	NA	20	NA	NA	Nothing	Nothing	CAS_16	CAS_16	0	8	2325	NA	1061.38333333333	NA	1263.61666666667	NA	14	1263.61666666667	14
 43	Sondergaard	12.378477	56.00366	Boreal	Lake	Lake	South_Scandinavia	7	15	0.7	0.5	Nothing	Nothing	Nothing	Esrum	1	8	476	413	373	63	103	8	19	103	19
-44	Koehler	18.9	64.1166666666667	Boreal	Lake	Lake	North_Scandinavia	NA	20	45	0.04	Nothing	Nothing	Nothing	Björntjärn	0	8	2084.16666666667	NA	1732.35933333334	NA	351.807333333334	NA	275	NA	NA
-44	Koehler	17.814968	60.043932	Boreal	Lake	Lake	North_Scandinavia	NA	20	NA	NA	Nothing	Nothing	Nothing	Clearlakes_mean	0	8	718.333333333333	NA	532.716	NA	185.617333333333	NA	369	NA	NA
+44	Koehler	18.9	64.1166666666667	Boreal	Lake	Lake	North_Scandinavia	NA	20	45	0.04	Nothing	Nothing	Nothing	Björntjärn	0	8	2084.16666666667	NA	1271.34166666667	NA	812.825	NA	1351	NA	NA
+44	Koehler	17.814968	60.043932	Boreal	Lake	Lake	North_Scandinavia	NA	20	NA	NA	Nothing	Nothing	Nothing	Clearlakes_mean	0	8	718.333333333333	NA	468.353333333333	NA	249.98	NA	1351	NA	NA
 45	Vähätalo	24.713352	62.881136	Boreal	Lake	Lake	North_Scandinavia	NA	21	0.22	0.099	10	0.001	Pääjärvi	Pääjärvi	0	8	916.666666666667	NA	712.5	NA	204.166666666667	NA	503	NA	NA
 46	Obernosterer	-81.298242	34.066312	Temperate	Lake	Lake	Mid_North	NA	20	0.2	0.99	1.5	0.01	Murray	Murray	0	8	324	321	235	3	89	5	297	3	5
 47	Stets	-93.267244	44.72332	Temperate	Lake	Lake	Mid_North	NA	NA	0.45	1	1.6	0.01	Crystal_(Minnesota)	Crystal_(Minnesota)	0	8	691.666666666667	NA	486.666666666667	NA	205	NA	203	NA	NA
