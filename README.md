@@ -8,4 +8,8 @@ The file has to be in the same folder as Script.Rmd
 
 Script.Rmd will reproduce graphics and statistical analysis.
 
-https://zenodo.org/badge/130365500.svg
+
+
+<a href="https://zenodo.org/badge/latestdoi/130365500"><img src="https://zenodo.org/badge/130365500.svg" alt="DOI"></a>
+
+
